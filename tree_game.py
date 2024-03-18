@@ -1,9 +1,19 @@
 from tree_node import TreeNode
+
 class TreeGame:
     def __init__(self):
         self.root = TreeNode("Root")
         self.resources = 100
-
+        
+    def find_node_by_data(self, node, data):
+        if node.data == data:
+            return node
+        for child in node.children:
+            result = self.find_node_by_data(child, data)
+            if result is not None:
+                return result
+        return None
+    
     def grow(self, parent_node, new_data):
         if self.resources > 0:
             new_node = TreeNode(new_data)
@@ -12,21 +22,18 @@ class TreeGame:
             return True, new_node
         return False, None
 
-    def _gather_levels(self, node, depth=0, levels=None, parent_data=""):
-        if levels is None:
-            levels = []
-        if len(levels) <= depth:
-            levels.append([])
-        node_repr = f"{parent_data}->{node.data}" if parent_data else node.data
-        levels[depth].append(node_repr)
-        
-        for child in node.children:
-            self._gather_levels(child, depth + 1, levels, node.data)
-        return levels
+    def get_tree_display_for_html(self):
+        def build_html(node, depth=0):
+            node_class = "node" if depth == 0 else "child-node"
+            html_out = f'<div class="{node_class}"><button type="button">{node.data}</button></div>'
+            
+            if node.children:
+                html_out += '<div class="children">' 
+                for child in node.children:
+                    html_out += f'<div class="node-container">{build_html(child, depth + 1)}</div>'
+                html_out += '</div>'
+            return html_out
 
-    def display_tree(self):
-        levels = self._gather_levels(self.root)
-        max_width = max(len(" ".join(level)) for level in levels)
-        for level in levels:
-            level_str = " ".join(level).center(max_width)
-            print(level_str)
+        return f'<div class="node-container">{build_html(self.root)}</div>'
+
+
