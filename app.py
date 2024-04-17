@@ -7,41 +7,38 @@ game = TreeGame()
 @app.route("/", methods=["GET", "POST"])
 def home():
     message = ""
-    message_class = "hidden" 
+    message_class = "hidden"
+    traversal_order = None
 
     if request.method == "POST":
-        action = request.form.get("action", "")
-        if action == "preorder":
-            visited = game.preorder_traversal(game.root)
-            tree_display = " -> ".join(visited)
-        elif action == "postorder":
-            visited = game.postorder_traversal(game.root)
-            tree_display = " -> ".join(visited)
+        action = request.form.get("action")
+        parent_data = request.form.get("parent_data", "")
+        data = request.form.get("data", "")
+
         if action == "grow":
-            parent_data = request.form.get("parent_data")
-            data = request.form.get("data")
-            if parent_data and data: 
-                parent_node = game.find_node_by_data(game.root, parent_data)
-                if parent_node:
-                    success, message = game.grow(parent_node, data)
-                    if not success:
-                        message_class = "error" 
-                    message = "Parent not found."
+            parent_node = game.find_node_by_data(game.root, parent_data)
+            if parent_node:
+                success, _ = game.grow(parent_node, data)
+                if not success:
+                    message = "Not enough resources to grow."
                     message_class = "error"
             else:
-                message = "Please fill in both fields."
+                message = "Parent not found."
                 message_class = "error"
         elif action == "preorder":
-            pass
+            traversal_order, _ = game.preorder_traversal(game.root)
+            message = "Preorder traversal activated."
+            message_class = "info"
         elif action == "inorder":
-            pass
+            traversal_order, _ = game.inorder_traversal(game.root)
+            message = "inorder traversal activated."
+            message_class = "info"
         elif action == "postorder":
-            pass
-        elif action == "end":
-            game.end_game() 
-            return render_template("game_over.html") 
+            traversal_order, _ = game.postorder_traversal(game.root)
+            message = "Postorder traversal activated."
+            message_class = "info"
 
-    tree_display = game.get_tree_display_for_html() 
+    tree_display = game.get_tree_display_for_html(traversal_order=traversal_order)
 
     return render_template("home.html", 
                            message=message, 
